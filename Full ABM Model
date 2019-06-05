@@ -8,8 +8,8 @@ platforms-own[platformbase name numberofvendors Cc Cv Cm Reputation]
 globals [v0 v1 interaction app-userratio]
 
 ;Cc - Cost to consumer
-;Cv - cost to vendor adoption 
-;Cm - Cost to vendor maintenance 
+;Cv - cost to vendor adoption
+;Cm - Cost to vendor maintenance
 ;kp1 - strength of direct network effects for people
 ;kp2 - strength of indirect network effects for people
 ;Kv1 - strength of positive direct network effects for vendors
@@ -26,7 +26,7 @@ clear-all
   set v1 [5 3 4 5]
   set interaction [-1 0 1 1]
   create-platforms 2
-  ask platform 0 [ set name "entrant"  set Cc 200 set Cv 4000 set Reputation 600]
+  ask platform 0 [ set name "entrant"  set Cc 200 set Cv 4000 set Reputation 1000]
   ask platform 1 [ set name "established" set Cc 800 set Cv 6000 set Reputation 100]
   create-vendors 5 [set currentplatform 1 set product_feature_1 random-normal 0.4 0.2 set product_feature_2 random-normal 0.5 0.2 set product_feature_3 random-normal 0.7 0.2 set price random-normal 150 30]
   create-vendors 3 [set currentplatform 0 set product_feature_1 random-normal 0.6 0.2 set product_feature_2 random-normal 0.7 0.2 set product_feature_3 random-normal 0.7 0.1 set price random-normal 150 30]
@@ -43,11 +43,11 @@ clear-all
       ]
       set app_choice item (random  (length vendors-choice-array - 1 ))  vendors-choice-array
 
-      
+
       ]
   ]
-  
- 
+
+
   reset-ticks
 end
 
@@ -55,7 +55,7 @@ To generate-user [x]
 
 create-persons x[ set platformchoice chooseplatform  set kp1 random-normal 0.03 0.01 set kp2 random-normal 0.7 0.002  set w1 0.4 set w2 0.5 set w3 0.6 set price_flexibility 1.4 set SC_thresholdpublic 1.7 set app_user random-normal app-userratio 0.1 set app_choice (chooseapp who platformchoice app_user)]
 
-end 
+end
 
 
 To simulate
@@ -89,23 +89,23 @@ To simulate
 
   ]
   ;ask platforms [show name show platformbase show numberofvendors]
-  
+
 
 ;; Decisions for change
  ask persons [
     let change platfromchangeforpeople  who platformchoice app_choice
     if(change > 0)[
-      ifelse(platformchoice = 0)[set platformchoice 1][set platformchoice 0] 
-      set app_choice chooseApp who platformchoice app_user 
- 
-      
+      ifelse(platformchoice = 0)[ifelse([numberofvendors] of platform 1 > 0 )[set platformchoice 1][set platformchoice 0]][ifelse([numberofvendors] of platform 0 > 0 )[set platformchoice 0][set platformchoice 1]]
+      set app_choice chooseApp who platformchoice app_user
+
+
     ]
-    
+
     if(app_user > 0.5)[
       ifelse(app_choice = 0 )[set app_choice chooseApp who platformchoice app_user][
       set change 0
       set  change appchangeforpeople  who platformchoice app_choice
-        if(change > 0)[set app_choice change ] ] 
+        if(change > 0)[set app_choice change ] ]
     ]
 
   ]
@@ -120,16 +120,16 @@ To simulate
   generate-user 5
   ask persons [
     if(app_user < 0.5)[set app_user random-normal app-userratio 0.1]]
-  set app-userratio (app-userratio + 0.002)  
-  
+  set app-userratio (app-userratio + 0.002)
+
 
 tick
 end
 
 To-report platfromchangeforpeople[ personnumber currentplatformnumber currentapp ]
   ; Calculates the utility for given person using direct and indirect network effects and subsidy
-  let platformbasesum 0 
-  let numberofvendorssum 0 
+  let platformbasesum 0
+  let numberofvendorssum 0
   let reputationsum 0
   let Cc_sum 0
   ask platforms[
@@ -138,7 +138,7 @@ To-report platfromchangeforpeople[ personnumber currentplatformnumber currentapp
     set reputationsum (reputationsum + reputation)
     set Cc_sum (Cc_sum + Cc)
   ]
-  
+
   let currentutility 0
   let competitorutility 0
   let change 0
@@ -163,14 +163,14 @@ To-report appchangeforpeople[ personnumber currentplatformnumber currentapp ]
   set vendorbasesum (vendorbasesum + vendorbase)
     set pricesum (pricesum + price)
   ]
-  
+
   let currentutility 0
   let competitorutility [0]
   let competitorarray [0]
   let positionmax 0
   let change 0
   ask vendors[
-  
+
     if(currentplatform = currentplatformnumber )[
       ifelse(who = currentapp)[
         set currentutility (vendorbase / vendorbasesum - price / pricesum)][set competitorutility fput (vendorbase / vendorbasesum  - price / pricesum) competitorutility set competitorarray fput who competitorarray]
@@ -180,20 +180,20 @@ To-report appchangeforpeople[ personnumber currentplatformnumber currentapp ]
   let maxcomputility max competitorutility
 
   set  positionmax position maxcomputility competitorutility
- 
+
 
   ifelse(maxcomputility < currentutility)
   [set change 0][set change item positionmax competitorarray]
- 
+
   report change
 end
 
 
 
 To-report platfromchangeforvendor [ vendornumber currentplatformnumber  ]
-  
-  let platformbasesum 0 
-  let networkeffectstrengthsum 0 
+
+  let platformbasesum 0
+  let networkeffectstrengthsum 0
   let Cv_sum 0
   ask platforms [
   set platformbasesum (platformbasesum + platformbase)
@@ -205,12 +205,12 @@ To-report platfromchangeforvendor [ vendornumber currentplatformnumber  ]
   let change 0
   ask platforms[
     let networkeffectstrength 0
-    ifelse(who = 0)[set networkeffectstrength ( (item 0 interaction ) * (item 0 v0) + (item 1 interaction ) * (item 1 v0) + (item 2 interaction ) * (item 2 v0) +(item 3 interaction ) * (item 3 v0)  ) ][set networkeffectstrength ( (item 0 interaction ) * (item 0 v1) + (item 1 interaction ) * (item 1 v1) + (item 2 interaction ) * (item 2 v1) +(item 3 interaction ) * (item 3 v1)  )] 
+    ifelse(who = 0)[set networkeffectstrength ( (item 0 interaction ) * (item 0 v0) + (item 1 interaction ) * (item 1 v0) + (item 2 interaction ) * (item 2 v0) +(item 3 interaction ) * (item 3 v0)  ) ][set networkeffectstrength ( (item 0 interaction ) * (item 0 v1) + (item 1 interaction ) * (item 1 v1) + (item 2 interaction ) * (item 2 v1) +(item 3 interaction ) * (item 3 v1)  )]
     ifelse( currentplatformnumber = who)
     [set  currentutility  ( platformbase / platformbasesum + networkeffectstrength / networkeffectstrength - Cv / Cv_sum )]
     [set  competitorutility  ( platformbase / platformbasesum + networkeffectstrength / networkeffectstrength - Cv / Cv_sum )]
   ]
-   
+
   ifelse(competitorutility < currentutility)
   [set change 0][ifelse(competitorutility / currentutility < 0)[set change 1][if(competitorutility / currentutility > 1.1)[set change 1]]]
   ;show change
@@ -220,49 +220,89 @@ end
 
 To-report chooseApp [ personnumber currentplatformnumber app_usercurrent  ]
   ; Calculates the utility for given person using direct and indirect network effects and subsidy
-   let change 0
-  if (app_usercurrent > 0.5)[
-  let competitorutility [0]
-  let competitorarray [0]
-  let positionmax 0
+ let vendorbasesum 0
+  let pricesum 0
+  ask vendors [
+  set vendorbasesum (vendorbasesum + vendorbase)
+    set pricesum (pricesum + price)
+  ] 
  
+ 
+  let change 0
+  if (app_usercurrent > 0.5)[
+  let vendorutility [0]
+  let vendorarray [0]
+  let positionmax 0
+
   ask vendors[
     if(currentplatform = currentplatformnumber)[
-    set competitorutility fput (vendorbase  - price) competitorutility 
-        
-        set competitorarray fput who competitorarray 
+    set vendorutility fput (vendorbase / vendorbasesum - price / pricesum) vendorutility
+
+        set vendorarray fput who vendorarray
       ]
   ]
-   set competitorutility remove-item (length competitorutility - 1 ) competitorutility
-   set  competitorarray remove-item (length competitorarray - 1) competitorarray
-   
-    
-  let maxcomputility max competitorutility
-  set  positionmax position maxcomputility competitorutility
-  set change item positionmax competitorarray
-  ]  
+
+    if (length vendorutility = 1) [ set currentplatformnumber changeplatform personnumber
+      
+      ask vendors[
+        if(currentplatform = currentplatformnumber)[
+          set vendorutility fput (vendorbase / vendorbasesum - price / pricesum) vendorutility
+
+          set vendorarray fput who vendorarray
+        ]
+      ]
+    ]
+
+    ;show vendorutility
+   set vendorutility remove-item (length vendorutility - 1 ) vendorutility
+   set  vendorarray remove-item (length vendorarray - 1) vendorarray
+
+
+  let maxcomputility max vendorutility
+  set  positionmax position maxcomputility vendorutility
+  set change item positionmax vendorarray
+  ]
   report change
 
-  
+
 end
 
 To-report chooseplatform
   ; Calculates the utility for given person using direct and indirect network effects and subsidy
- 
+  let platformbasesum 0
+  let numberofvendorssum 0
+  let reputationsum 0
+  let Cc_sum 0
+  ask platforms[
+  set platformbasesum (platformbasesum + platformbase)
+    set numberofvendorssum (numberofvendorssum + numberofvendors)
+    set reputationsum (reputationsum + reputation)
+    set Cc_sum (Cc_sum + Cc)
+  ]
+
+  
   let utility0 0
   let utility1 0
   let change 0
   ask platforms[
     ifelse(  who = 0 )
-    [set  utility0  ( platformbase + 50 * numberofvendors + Reputation - Cc )]
-    [set  utility1  ( platformbase + 50 * numberofvendors + Reputation - Cc )]
+    [set  utility0  ( platformbase / platformbasesum + numberofvendors / numberofvendorssum + Reputation / reputationsum - Cc / Cc_sum )]
+    [set  utility1 ( platformbase / platformbasesum + numberofvendors / numberofvendorssum + Reputation / reputationsum - Cc / Cc_sum )]
   ]
 
   ifelse(utility0 < utility1)
-  [set change 1][set change 0]
+  [ifelse([numberofvendors] of platform 1 > 0)[set change 1][set change 0]][ifelse([numberofvendors] of platform 0 > 0)[set change 0][set change 1]]
   ;show change
   report change
 
-  
+
 end
 
+to-report changeplatform [personnumber]
+
+  ask person personnumber [
+    ifelse(platformchoice = 0 ) [set platformchoice 1 ][set platformchoice 0 ]
+  ]
+  report platformchoice
+
+end
